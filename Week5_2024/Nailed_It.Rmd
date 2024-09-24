@@ -33,7 +33,7 @@ Now to the plot
 
 ```{r scatterplot 1}
 pt <- ggplot(df) + 
-  geom_point(aes(x = `Miles Driven`,y = `Cost Per Mile`), color = GRAY9, size = 2.5) +
+  geom_point(aes(x = `Miles Driven`,y = `Cost Per Mile`), color = "Grey", size = 2.5) +
   scale_y_continuous(breaks = seq(0,3.5,.5), limits = c(0,3), labels = scales::dollar_format()) + 
   scale_x_continuous(limits = c(0,4000), label = scales::comma) +
   geom_point(x = avg_miles, y = avg_cost, size=3.5) + 
@@ -97,7 +97,32 @@ pa_wide <- get_acs(
 Here is where we will do the mapping
 
 ```{r nailtedit1}
+avg_age <- mean(pa_wide$medageE)
+avg_inc <- mean(pa_wide$medincE)
+color = if_else(pa_wide$medageE< avg_age, GRAY9, ORANGE1)
 
+
+pt <- ggplot(pa_wide) + 
+  geom_point(aes(x = medincE, y = medageE), color = GRAY9, size = 2) +
+  scale_y_continuous(breaks = seq(0,55,5), limits = c(30,55)) + 
+  scale_x_continuous(limits = c(40000,105000), labels = scales::dollar_format()) +
+  geom_point(x = avg_inc, y = avg_age, size=2.5) + 
+  geom_text(x = avg_inc, y = avg_age, label = "Avg", hjust = 0.5, vjust = 1.5, angle = 0.20, alpha = 0.20) +  
+  labs(title = "Median Income vs. Median Age", x = "Median Income", y = "Median Age") +
+  coord_capped_cart(bottom = "right", left = "top")
+  
+pt <- ggplot(pa_wide) + 
+  geom_point(aes(x = medincE, y = medageE), color = color, size = 2) +
+  scale_y_continuous(breaks = seq(0,55,5), limits = c(30,55)) + 
+  scale_x_continuous(limits = c(40000,105000), labels = scales::dollar_format()) +
+  geom_hline(yintercept = avg_age, linetype = "longdash") +
+  geom_vline(xintercept = avg_inc, linetype = "longdash") +
+  geom_point(x = avg_inc, y = avg_age, size=2.5) + 
+  geom_point(x = avg_age, y = avg_inc, size=2.5) + 
+  labs(title = "Median Income vs. Median Age", subtitle = "PA Counties, 2020", x = "Median Income", y = "Median Age") +
+  coord_capped_cart(bottom = "right", left = "top")
+
+pt
 
 ```
 
@@ -152,7 +177,27 @@ philly_value <- map_dfr(years, ~{
 Now for the nailed it graph! Rather than using the min and max fields from the previous example, use the estimate +/- MOE. Feel free to modify it so it looks BETTER than the sampler. 
 
 ```{r naileditlinegraph}
+##Figure 2
 
+f <- ggplot(philly_value, aes(x = year, y = estimate, group = 1)) + 
+  geom_ribbon(aes(ymax = estimate + moe, ymin = estimate - moe), 
+              fill = "darkgrey",
+              alpha = 0.4) + 
+  geom_line(color = "orange", size =2) + 
+  geom_vline(xintercept = "2009", color = "black", linetype =2, linewidth =1)+
+  geom_point(color = "black", size = 2,data = philly_value %>% filter(year >= 2013)) + 
+  annotate(geom= "text", x= 5, y = 125000, label =  "Great Recession \n The housing bubble peaked in 2009 \n and housing prices fell to their \n lowest level in 2013 before rising again.", hjust = 0)+
+  theme_minimal(base_size = 12) + 
+  scale_y_continuous(labels = scales::dollar_format(scale = .001, suffix = "k")) + 
+  labs(title = "Median home values in Philadelphia have steadily risen since 2013",
+       x = "Year",
+       y = "ACS estimate",
+       caption = "Shaded area represents margin of error around the ACS estimate")
+
+
+
+# Display the plot
+print(f)
 
 ```
 
